@@ -1,0 +1,54 @@
+#!/bin/bash
+
+echo "#########################################################"
+echo "### perform update command and install apache and wsgi ##"
+echo "#########################################################"
+
+sudo apt update
+sudo apt install apache2 -y
+
+sudo apt-get install libapache2-mod-wsgi-py3
+
+
+echo "#########################################################"
+echo "############### creating config file  ###################"
+echo "#########################################################"
+
+sudo touch /etc/apache2/sites-available/rpibackend.conf
+x=tem.tem
+touch $x
+echo "<VirtualHost *:80>" >>   $x
+echo "      ServerName gonjoy.com" >>$x
+echo "      ServerAdmin admin@gonjoy.com" >>$x
+echo "      WSGIScriptAlias / /var/www/RPi_Backend/rpi.wsgi" >>$x
+echo "      WSGIPassAuthorization On" >>$x
+echo "      <Directory /var/www/RPi_Backend/RPi_Backend/>" >>$x
+echo "          Order allow,deny" >>$x
+echo "          Allow from all" >>$x
+echo "      </Directory>" >>$x
+echo '		ErrorLog ${APACHE_LOG_DIR}/rpibackend/error.log' >>$x
+echo "		LogLevel warn" >>$x
+echo '		CustomLog ${APACHE_LOG_DIR}/rpibackend/access.log combined' >>$x
+echo "</VirtualHost>" >>$x
+
+sudo mv  $x /etc/apache2/sites-available/rpibackend.conf
+sudo a2dissite 000-default.conf
+sudo a2ensite rpibackend.conf
+sudo touch /var/log/apache2/rpibackend/error.log
+sudo touch /var/log/apache2/rpibackend/access.log
+
+#9. -------------------------- restart apache --------------------------
+sudo service apache2 restart
+
+echo "#########################################################"
+echo "########## Give all permission to www-data  #############"
+echo "#########################################################"
+
+echo 'www-data ALL=(ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo
+
+
+echo "#########################################################"
+echo "########## Installing require packages  #############"
+echo "#########################################################"
+
+pip3 install requirements.txt
